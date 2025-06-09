@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -72,11 +73,11 @@ export default function PomodoroTimer() {
         setTotalFocusedSeconds((prev) => prev + focusDuration * 60);
         setCurrentPhase("break");
         setTimeLeft(breakDuration * 60);
-        toast({ title: "Focus Time Over!", description: "Time for a break.", variant: "default" });
+        toast({ title: "集中時間終了！", description: "休憩の時間です。", variant: "default" });
       } else {
         setCurrentPhase("focus");
         setTimeLeft(focusDuration * 60);
-        toast({ title: "Break Time Over!", description: "Back to focus!", variant: "default" });
+        toast({ title: "休憩時間終了！", description: "集中に戻りましょう！", variant: "default" });
       }
       // Auto-continue to next phase
       // setIsActive(true); // This is implicitly handled as isActive remains true
@@ -100,7 +101,7 @@ export default function PomodoroTimer() {
     setCurrentPhase("focus");
     setTimeLeft(focusDuration * 60);
     // Optionally reset total focused time: setTotalFocusedSeconds(0);
-    toast({ title: "Timer Reset", description: "Ready to start a new focus session." });
+    toast({ title: "タイマーリセット", description: "新しい集中セッションを開始する準備ができました。" });
   };
 
   const handleSkip = async () => {
@@ -110,11 +111,11 @@ export default function PomodoroTimer() {
       setTotalFocusedSeconds((prev) => prev + (focusDuration * 60 - timeLeft)); // Add elapsed focus time
       setCurrentPhase("break");
       setTimeLeft(breakDuration * 60);
-      toast({ title: "Skipped to Break", description: "Enjoy your break!", variant: "default" });
+      toast({ title: "休憩にスキップしました", description: "休憩をお楽しみください！", variant: "default" });
     } else {
       setCurrentPhase("focus");
       setTimeLeft(focusDuration * 60);
-      toast({ title: "Skipped to Focus", description: "Time to focus!", variant: "default" });
+      toast({ title: "集中にスキップしました", description: "集中する時間です！", variant: "default" });
     }
     setIsActive(true); // Auto-start next phase
   };
@@ -124,7 +125,7 @@ export default function PomodoroTimer() {
     const newBreak = parseInt(customBreakDuration, 10);
 
     if (isNaN(newFocus) || newFocus <= 0 || isNaN(newBreak) || newBreak <= 0) {
-      toast({ title: "Invalid Input", description: "Durations must be positive numbers.", variant: "destructive" });
+      toast({ title: "無効な入力", description: "時間は正の数でなければなりません。", variant: "destructive" });
       return;
     }
 
@@ -139,7 +140,7 @@ export default function PomodoroTimer() {
       }
     }
     setIsSettingsOpen(false);
-    toast({ title: "Settings Saved", description: `Focus: ${newFocus} min, Break: ${newBreak} min.` });
+    toast({ title: "設定を保存しました", description: `集中: ${newFocus}分、休憩: ${newBreak}分。` });
   };
 
   const formatTime = (seconds: number) => {
@@ -153,9 +154,9 @@ export default function PomodoroTimer() {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
     let parts = [];
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0) parts.push(`${minutes}m`);
-    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+    if (hours > 0) parts.push(`${hours}時間`);
+    if (minutes > 0) parts.push(`${minutes}分`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}秒`);
     return parts.join(" ");
   };
 
@@ -166,7 +167,7 @@ export default function PomodoroTimer() {
     <div className="flex justify-center items-center min-h-screen p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="font-headline text-3xl">Pomodoro TimeFlow</CardTitle>
+          <CardTitle className="font-headline text-3xl">ポモドーロ タイムフロー</CardTitle>
           <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => {
@@ -178,15 +179,15 @@ export default function PomodoroTimer() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle className="font-headline">Timer Settings</DialogTitle>
+                <DialogTitle className="font-headline">タイマー設定</DialogTitle>
                 <DialogDescription>
-                  Set your desired focus and break durations in minutes.
+                  集中時間と休憩時間を分単位で設定します。
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="focus-duration" className="text-right">
-                    Focus
+                    集中
                   </Label>
                   <Input
                     id="focus-duration"
@@ -199,7 +200,7 @@ export default function PomodoroTimer() {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="break-duration" className="text-right">
-                    Break
+                    休憩
                   </Label>
                   <Input
                     id="break-duration"
@@ -212,8 +213,8 @@ export default function PomodoroTimer() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsSettingsOpen(false)}>Cancel</Button>
-                <Button type="submit" onClick={handleSaveSettings}>Save Changes</Button>
+                <Button type="button" variant="outline" onClick={() => setIsSettingsOpen(false)}>キャンセル</Button>
+                <Button type="submit" onClick={handleSaveSettings}>変更を保存</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -221,7 +222,7 @@ export default function PomodoroTimer() {
         <CardContent className="flex flex-col items-center space-y-6 py-8">
           <div className="text-center">
             <p className="text-xl font-medium text-primary mb-2">
-              {currentPhase === "focus" ? "Focus Time" : "Break Time"}
+              {currentPhase === "focus" ? "集中時間" : "休憩時間"}
             </p>
             <h2 className="text-7xl font-bold text-accent font-mono tabular-nums tracking-tight">
               {formatTime(timeLeft)}
@@ -231,20 +232,22 @@ export default function PomodoroTimer() {
           <div className="flex space-x-4">
             <Button onClick={handleStartPause} size="lg" className="px-8 py-6 text-lg w-36">
               {isActive ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
-              {isActive ? "Pause" : "Start"}
+              {isActive ? "一時停止" : "開始"}
             </Button>
             <Button onClick={handleReset} variant="outline" size="lg" className="px-6 py-6 text-lg">
-              <RotateCcw className="mr-2 h-5 w-5" /> Reset
+              <RotateCcw className="mr-2 h-5 w-5" /> リセット
             </Button>
             <Button onClick={handleSkip} variant="secondary" size="lg" className="px-6 py-6 text-lg">
-              <SkipForward className="mr-2 h-5 w-5" /> Skip
+              <SkipForward className="mr-2 h-5 w-5" /> スキップ
             </Button>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center text-muted-foreground">
-          <p>Total Focused Time: {formatTotalFocusedTime(totalFocusedSeconds)}</p>
+          <p>合計集中時間: {formatTotalFocusedTime(totalFocusedSeconds)}</p>
         </CardFooter>
       </Card>
     </div>
   );
 }
+
+    
