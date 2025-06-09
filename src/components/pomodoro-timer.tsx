@@ -55,8 +55,8 @@ export default function PomodoroTimer() {
       alarmSynth.current.triggerAttackRelease("C5", "0.5s", Tone.now());
       alarmSynth.current.triggerAttackRelease("G5", "0.5s", Tone.now() + 0.7);
     } else {
-      console.warn("Alarm sound could not be played. Audio context not running or synth not initialized.");
-      initializeAudio(); // Try to re-initialize
+      console.warn("アラーム音を再生できませんでした。オーディオコンテキストが実行されていないか、シンセサイザーが初期化されていません。");
+      initializeAudio(); // 再初期化を試みる
     }
   }, [initializeAudio]);
 
@@ -79,8 +79,6 @@ export default function PomodoroTimer() {
         setTimeLeft(focusDuration * 60);
         toast({ title: "休憩時間終了！", description: "集中に戻りましょう！", variant: "default" });
       }
-      // Auto-continue to next phase
-      // setIsActive(true); // This is implicitly handled as isActive remains true
     }
 
     return () => {
@@ -89,9 +87,9 @@ export default function PomodoroTimer() {
   }, [isActive, timeLeft, currentPhase, focusDuration, breakDuration, toast, playAlarm]);
 
   const handleStartPause = async () => {
-    await initializeAudio(); // Ensure audio is ready before starting
+    await initializeAudio(); 
     setIsActive((prev) => !prev);
-    if (!isActive && timeLeft === 0) { // Starting for the first time or after a reset that set timeLeft to 0
+    if (!isActive && timeLeft === 0) { 
         setTimeLeft(currentPhase === "focus" ? focusDuration * 60 : breakDuration * 60);
     }
   };
@@ -100,7 +98,6 @@ export default function PomodoroTimer() {
     setIsActive(false);
     setCurrentPhase("focus");
     setTimeLeft(focusDuration * 60);
-    // Optionally reset total focused time: setTotalFocusedSeconds(0);
     toast({ title: "タイマーリセット", description: "新しい集中セッションを開始する準備ができました。" });
   };
 
@@ -108,7 +105,7 @@ export default function PomodoroTimer() {
     await initializeAudio();
     playAlarm();
     if (currentPhase === "focus") {
-      setTotalFocusedSeconds((prev) => prev + (focusDuration * 60 - timeLeft)); // Add elapsed focus time
+      setTotalFocusedSeconds((prev) => prev + (focusDuration * 60 - timeLeft)); 
       setCurrentPhase("break");
       setTimeLeft(breakDuration * 60);
       toast({ title: "休憩にスキップしました", description: "休憩をお楽しみください！", variant: "default" });
@@ -117,7 +114,7 @@ export default function PomodoroTimer() {
       setTimeLeft(focusDuration * 60);
       toast({ title: "集中にスキップしました", description: "集中する時間です！", variant: "default" });
     }
-    setIsActive(true); // Auto-start next phase
+    setIsActive(true); 
   };
 
   const handleSaveSettings = () => {
@@ -230,14 +227,14 @@ export default function PomodoroTimer() {
           </div>
           <Progress value={progressPercentage} className="w-full h-3 transition-all duration-500" />
           <div className="flex space-x-4">
-            <Button onClick={handleStartPause} size="lg" className="px-8 py-6 text-lg w-36">
+            <Button onClick={handleStartPause} size="lg" className="px-4 text-base">
               {isActive ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
               {isActive ? "一時停止" : "開始"}
             </Button>
-            <Button onClick={handleReset} variant="outline" size="lg" className="px-6 py-6 text-lg">
+            <Button onClick={handleReset} variant="outline" size="lg" className="px-4 text-base">
               <RotateCcw className="mr-2 h-5 w-5" /> リセット
             </Button>
-            <Button onClick={handleSkip} variant="secondary" size="lg" className="px-6 py-6 text-lg">
+            <Button onClick={handleSkip} variant="secondary" size="lg" className="px-4 text-base">
               <SkipForward className="mr-2 h-5 w-5" /> スキップ
             </Button>
           </div>
@@ -249,5 +246,3 @@ export default function PomodoroTimer() {
     </div>
   );
 }
-
-    
