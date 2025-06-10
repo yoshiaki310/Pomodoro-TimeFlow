@@ -52,7 +52,7 @@ export default function PomodoroTimer() {
       const newDbVolume = alarmVolume === 0 ? -Infinity : Tone.gainToDb(alarmVolume / 100);
       alarmSynth.current.volume.value = newDbVolume;
     }
-  }, [alarmVolume, audioContextStarted.current]);
+  }, [alarmVolume]);
 
 
   useEffect(() => {
@@ -61,17 +61,19 @@ export default function PomodoroTimer() {
     }
   }, [initializeAudio]);
 
-  const playAlarm = useCallback(() => {
+  const playAlarm = useCallback(async () => {
+    await initializeAudio();
     if (alarmSynth.current && Tone.context.state === "running") {
       const now = Tone.now();
-      // ウエストミンスターの鐘風の音階
-      alarmSynth.current.triggerAttackRelease("E5", "0.4s", now); // ミ
-      alarmSynth.current.triggerAttackRelease("D5", "0.4s", now + 0.5); // レ
-      alarmSynth.current.triggerAttackRelease("C5", "0.4s", now + 1.0); // ド
-      alarmSynth.current.triggerAttackRelease("G4", "0.5s", now + 1.5); // ソ
+      // メロディ: C5(8分音符), E5(8分音符), G5(8分音符), C6(4分音符)
+      // "c8e8g8>c4<" の解釈
+      const eighthNoteTime = Tone.Time("8n").toSeconds();
+      alarmSynth.current.triggerAttackRelease("C5", "8n", now);
+      alarmSynth.current.triggerAttackRelease("E5", "8n", now + eighthNoteTime);
+      alarmSynth.current.triggerAttackRelease("G5", "8n", now + eighthNoteTime * 2);
+      alarmSynth.current.triggerAttackRelease("C6", "4n", now + eighthNoteTime * 3);
     } else {
       console.warn("アラーム音を再生できませんでした。オーディオコンテキストが実行されていないか、シンセサイザーが初期化されていません。");
-      initializeAudio(); 
     }
   }, [initializeAudio]);
 
@@ -192,7 +194,6 @@ export default function PomodoroTimer() {
                 setCustomFocusDuration(focusDuration.toString());
                 setCustomBreakDuration(breakDuration.toString());
                 setCustomAlarmVolume(alarmVolume.toString());
-                // setIsSettingsOpen(true); // This is handled by onOpenChange
               }}>
                 <Settings className="h-6 w-6" />
               </Button>
@@ -247,6 +248,15 @@ export default function PomodoroTimer() {
                 </div>
               </div>
               <DialogFooter>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={playAlarm} 
+                  aria-label="アラーム音をテスト再生"
+                  className="mr-auto"
+                >
+                  <span role="img" aria-label="bell emoji">🔔</span>
+                </Button>
                 <Button type="button" variant="outline" onClick={() => setIsSettingsOpen(false)}>キャンセル</Button>
                 <Button type="submit" onClick={handleSaveSettings}>変更を保存</Button>
               </DialogFooter>
@@ -283,4 +293,3 @@ export default function PomodoroTimer() {
     </div>
   );
 }
-
