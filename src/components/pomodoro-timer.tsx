@@ -8,19 +8,23 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Play, Pause, RotateCcw, SkipForward } from "lucide-react";
 import * as Tone from 'tone';
 
 const DEFAULT_FOCUS_DURATION = 30; 
 const DEFAULT_BREAK_DURATION = 15; 
+const DEFAULT_ALARM_VOLUME = 50; // Default volume percentage (0-100)
 
 export default function PomodoroTimer() {
   const [focusDuration, setFocusDuration] = useState(DEFAULT_FOCUS_DURATION);
   const [breakDuration, setBreakDuration] = useState(DEFAULT_BREAK_DURATION);
+  const [alarmVolume, setAlarmVolume] = useState(DEFAULT_ALARM_VOLUME);
   
   const [customFocusDuration, setCustomFocusDuration] = useState(DEFAULT_FOCUS_DURATION.toString());
   const [customBreakDuration, setCustomBreakDuration] = useState(DEFAULT_BREAK_DURATION.toString());
+  const [customAlarmVolume, setCustomAlarmVolume] = useState(DEFAULT_ALARM_VOLUME.toString());
 
   const [timeLeft, setTimeLeft] = useState(focusDuration * 60);
   const [isActive, setIsActive] = useState(false);
@@ -43,6 +47,13 @@ export default function PomodoroTimer() {
     }
   }, []);
 
+  useEffect(() => {
+    if (alarmSynth.current && audioContextStarted.current && Tone.context.state === "running") {
+      const newDbVolume = alarmVolume === 0 ? -Infinity : Tone.gainToDb(alarmVolume / 100);
+      alarmSynth.current.volume.value = newDbVolume;
+    }
+  }, [alarmVolume, audioContextStarted.current]);
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -53,10 +64,11 @@ export default function PomodoroTimer() {
   const playAlarm = useCallback(() => {
     if (alarmSynth.current && Tone.context.state === "running") {
       const now = Tone.now();
-      alarmSynth.current.triggerAttackRelease("E5", "0.4s", now);
-      alarmSynth.current.triggerAttackRelease("D5", "0.4s", now + 0.5);
-      alarmSynth.current.triggerAttackRelease("C5", "0.4s", now + 1.0);
-      alarmSynth.current.triggerAttackRelease("G4", "0.5s", now + 1.5);
+      // ウエストミンスターの鐘風の音階
+      alarmSynth.current.triggerAttackRelease("E5", "0.4s", now); // ミ
+      alarmSynth.current.triggerAttackRelease("D5", "0.4s", now + 0.5); // レ
+      alarmSynth.current.triggerAttackRelease("C5", "0.4s", now + 1.0); // ド
+      alarmSynth.current.triggerAttackRelease("G4", "0.5s", now + 1.5); // ソ
     } else {
       console.warn("アラーム音を再生できませんでした。オーディオコンテキストが実行されていないか、シンセサイザーが初期化されていません。");
       initializeAudio(); 
@@ -123,14 +135,20 @@ export default function PomodoroTimer() {
   const handleSaveSettings = () => {
     const newFocus = parseInt(customFocusDuration, 10);
     const newBreak = parseInt(customBreakDuration, 10);
+    const newVolume = parseInt(customAlarmVolume, 10);
 
     if (isNaN(newFocus) || newFocus <= 0 || isNaN(newBreak) || newBreak <= 0) {
       toast({ title: "無効な入力", description: "時間は正の数でなければなりません。", variant: "destructive" });
       return;
     }
+    if (isNaN(newVolume) || newVolume < 0 || newVolume > 100) {
+      toast({ title: "無効な入力", description: "音量は0から100の間でなければなりません。", variant: "destructive" });
+      return;
+    }
 
     setFocusDuration(newFocus);
     setBreakDuration(newBreak);
+    setAlarmVolume(newVolume);
 
     if (!isActive) {
       if (currentPhase === "focus") {
@@ -140,7 +158,7 @@ export default function PomodoroTimer() {
       }
     }
     setIsSettingsOpen(false);
-    toast({ title: "設定を保存しました", description: `集中: ${newFocus}分、休憩: ${newBreak}分。` });
+    toast({ title: "設定を保存しました", description: `集中: ${newFocus}分、休憩: ${newBreak}分、音量: ${newVolume}%。` });
   };
 
   const formatTime = (seconds: number) => {
@@ -173,6 +191,8 @@ export default function PomodoroTimer() {
               <Button variant="ghost" size="icon" onClick={() => {
                 setCustomFocusDuration(focusDuration.toString());
                 setCustomBreakDuration(breakDuration.toString());
+                setCustomAlarmVolume(alarmVolume.toString());
+                // setIsSettingsOpen(true); // This is handled by onOpenChange
               }}>
                 <Settings className="h-6 w-6" />
               </Button>
@@ -181,7 +201,7 @@ export default function PomodoroTimer() {
               <DialogHeader>
                 <DialogTitle className="font-headline">タイマー設定</DialogTitle>
                 <DialogDescription>
-                  集中時間と休憩時間を分単位で設定します。
+                  集中時間、休憩時間、アラーム音量を設定します。
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -210,6 +230,20 @@ export default function PomodoroTimer() {
                     className="col-span-3"
                     min="1"
                   />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="alarm-volume" className="text-right">
+                    音量
+                  </Label>
+                  <Slider
+                    id="alarm-volume"
+                    value={[parseInt(customAlarmVolume, 10)]}
+                    onValueChange={(value) => setCustomAlarmVolume(value[0].toString())}
+                    max={100}
+                    step={1}
+                    className="col-span-2"
+                  />
+                  <span className="text-sm tabular-nums">{customAlarmVolume}%</span>
                 </div>
               </div>
               <DialogFooter>
@@ -249,3 +283,4 @@ export default function PomodoroTimer() {
     </div>
   );
 }
+
