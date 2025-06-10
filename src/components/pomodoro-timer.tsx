@@ -12,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Settings, Play, Pause, RotateCcw, SkipForward } from "lucide-react";
 import * as Tone from 'tone';
 
-const DEFAULT_FOCUS_DURATION = 30; // minutes
-const DEFAULT_BREAK_DURATION = 15; // minutes
+const DEFAULT_FOCUS_DURATION = 30; 
+const DEFAULT_BREAK_DURATION = 15; 
 
 export default function PomodoroTimer() {
   const [focusDuration, setFocusDuration] = useState(DEFAULT_FOCUS_DURATION);
@@ -36,7 +36,7 @@ export default function PomodoroTimer() {
     if (!audioContextStarted.current && Tone.context.state !== "running") {
       await Tone.start();
       audioContextStarted.current = true;
-      console.log("Audio context started");
+      console.log("オーディオコンテキストが開始されました");
     }
     if (!alarmSynth.current) {
       alarmSynth.current = new Tone.Synth().toDestination();
@@ -52,11 +52,14 @@ export default function PomodoroTimer() {
 
   const playAlarm = useCallback(() => {
     if (alarmSynth.current && Tone.context.state === "running") {
-      alarmSynth.current.triggerAttackRelease("C5", "0.5s", Tone.now());
-      alarmSynth.current.triggerAttackRelease("G5", "0.5s", Tone.now() + 0.7);
+      const now = Tone.now();
+      alarmSynth.current.triggerAttackRelease("E5", "0.4s", now);
+      alarmSynth.current.triggerAttackRelease("D5", "0.4s", now + 0.5);
+      alarmSynth.current.triggerAttackRelease("C5", "0.4s", now + 1.0);
+      alarmSynth.current.triggerAttackRelease("G4", "0.5s", now + 1.5);
     } else {
       console.warn("アラーム音を再生できませんでした。オーディオコンテキストが実行されていないか、シンセサイザーが初期化されていません。");
-      initializeAudio(); // 再初期化を試みる
+      initializeAudio(); 
     }
   }, [initializeAudio]);
 
